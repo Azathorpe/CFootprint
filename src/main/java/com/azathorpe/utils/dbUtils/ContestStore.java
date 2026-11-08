@@ -43,6 +43,7 @@ public class ContestStore {
             //间隔在6个小时，可以抓数据
             updateDatabase();
             LAST_FETCH_TIMESTAMP = currentTimeMillis;
+            FileUtils.cc.setContestLastFetchTimeStamp(currentTimeMillis);
             return true;
         }
         return false;

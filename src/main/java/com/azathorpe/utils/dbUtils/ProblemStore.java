@@ -121,6 +121,7 @@ public final class ProblemStore {
             //间隔在6个小时，可以抓数据
             updateDatabase();
             LAST_FETCH_TIMESTAMP = currentTimeMillis;
+            FileUtils.cc.setProblemLastFetchTimeStamp(currentTimeMillis);
             return true;
         }
         return false;

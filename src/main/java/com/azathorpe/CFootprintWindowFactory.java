@@ -60,14 +60,16 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             if (ProblemStore.autoUpdate()) {
                 log.info("Problem Updated...");
+                System.out.println("Problem Updated...");
             }
 
-            if (ContestStore.autoUpdate())
+            if (ContestStore.autoUpdate()) {
                 log.info("Contest Updated...");
+                System.out.println("Contest Updated...");
+            }
         });
 
 //        UserStore.updateDatabase("jiangly");
-//        ContestStore.updateDatabase();
 
         JPanel root = new JPanel(new BorderLayout());
         root.add(createFilterBar(), BorderLayout.NORTH);
