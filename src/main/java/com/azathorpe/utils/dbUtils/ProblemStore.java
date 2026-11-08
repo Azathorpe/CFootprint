@@ -1,6 +1,7 @@
 package com.azathorpe.utils.dbUtils;
 
 import com.alibaba.fastjson2.JSON;
+import com.azathorpe.entities.Contest;
 import com.azathorpe.entities.Problem;
 import com.azathorpe.entities.ProblemStatistics;
 import com.azathorpe.entities.Problems;
@@ -10,6 +11,7 @@ import jetbrains.exodus.entitystore.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,10 +41,15 @@ public final class ProblemStore {
         // 解析json
         // 是两个数组"problems"&"problemStatistics"
         Problems problems = JSON.parseObject(FileUtils.readProblemSet(), Problems.class);
+        List<Contest> contests = JSON.parseArray(FileUtils.readContest(), Contest.class);
+
         // 这个是为了获取他们的通过数量，我们单独放到xodus里面
         HashMap<String, Integer> problemStatisticsMap = new HashMap<>();
         for (ProblemStatistics ps : problems.getProblemStatistics())
             problemStatisticsMap.put(ps.getContestId() + "-" + ps.getIndex(), ps.getSolvedCount());
+        HashMap<Integer, String> contestIdToNameMap = new HashMap<>();
+        for (Contest contest : contests)
+            contestIdToNameMap.put(contest.getId(), contest.getName());
 
         ProblemStore.get().executeInTransaction(txn -> {
             for (Problem problemS : problems.getProblems()) {
@@ -57,6 +64,9 @@ public final class ProblemStore {
                     contest = txn.newEntity("Contest");
                     contest.setProperty("contestId", problemS.getContestId());
                 }
+                String contestName = contestIdToNameMap.get(problemS.getContestId());
+                contest.setProperty("name", contestName == null ? "" : contestName);
+                contest.setProperty("division", classifyDivision(contestName));
 
                 Entity problemDB = findProblem(txn, problemS.getContestId(), problemS.getIndex());
                 if (problemDB == null) {
@@ -118,6 +128,21 @@ public final class ProblemStore {
             }
             System.out.println("ProblemStatistics 总数: " + statCount);
         });
+    }
+
+    private static String classifyDivision(String name) {
+        if (name == null) return "OTHER";
+        String n = name.toLowerCase();
+        boolean div1 = n.contains("div. 1") || n.contains("div.1") || n.contains("div 1");
+        boolean div2 = n.contains("div. 2") || n.contains("div.2") || n.contains("div 2");
+        if (div1 && div2) return "DIV1_2";
+        if (div1) return "DIV1";
+        if (div2) return "DIV2";
+        if (n.contains("div. 3") || n.contains("div.3") || n.contains("div 3")) return "DIV3";
+        if (n.contains("div. 4") || n.contains("div.4") || n.contains("div 4")) return "DIV4";
+        if (n.contains("educational")) return "EDU";
+        if (n.contains("global round")) return "GLOBAL";
+        return "OTHER";
     }
 
     private static Entity findProblem(StoreTransaction txn, int contestId, String index) {

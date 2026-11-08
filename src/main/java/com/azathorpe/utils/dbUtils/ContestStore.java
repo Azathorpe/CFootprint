@@ -1,5 +1,6 @@
 package com.azathorpe.utils.dbUtils;
 
+import com.azathorpe.utils.cfetcher.CFFetcher;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import jetbrains.exodus.entitystore.PersistentEntityStore;
 import jetbrains.exodus.entitystore.PersistentEntityStores;
@@ -19,5 +20,11 @@ public class ContestStore {
             instance.close();
             instance = null;
         }
+    }
+
+    public static void updateDatabase() {
+        // 拉取题目文件
+        CFFetcher.fetchContests();
+        // 解析json
     }
 }
