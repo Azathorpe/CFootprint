@@ -30,7 +30,7 @@
              See https://plugins.jetbrains.com/docs/marketplace/error-handler.html#developers-side for details. -->
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
         <toolWindow id="CFootprint" factoryClass="com.azathorpe.CFootprintWindowFactory"
-                    icon="AllIcons.Toolwindows.ToolWindowPalette"/>
+                    icon="/META-INF/pluginIcon.svg"/>
     </extensions>
 
 </idea-plugin>
