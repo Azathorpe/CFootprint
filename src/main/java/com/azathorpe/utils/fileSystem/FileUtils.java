@@ -3,6 +3,7 @@ package com.azathorpe.utils.fileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,53 @@ public class FileUtils {
             Files.createDirectories(ProblemStoragePath);
             Files.createDirectories(UserStoragePath);
             log.info("Checking Over......");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * 保存用户的状态
+     *
+     * @param handle handle
+     */
+    public static void saveUserStatus(String handle, String content) {
+        try {
+            FileWriter fw = new FileWriter(UserStoragePath.resolve(handle).toFile());
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String readUserStatus(String handle) {
+        try {
+            return Files.readString(UserStoragePath.resolve(handle));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 保存题目集
+     *
+     * @param content 内容
+     */
+    public static void saveProblemSet(String content) {
+        try {
+            FileWriter fw = new FileWriter(ProblemStoragePath.resolve("problemset.json").toFile());
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String readProblemSet() {
+        try {
+            return Files.readString(ProblemStoragePath.resolve("problemset.json"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
