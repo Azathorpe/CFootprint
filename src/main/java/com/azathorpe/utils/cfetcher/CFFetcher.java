@@ -13,7 +13,7 @@ public class CFFetcher {
      * 我们需要确保不要太频繁访问Codeforces的API
      * 至少当前的时间戳距离上一次有两秒以上
      */
-    long lastFetchTimestamp = System.currentTimeMillis();
+    static long lastFetchTimestamp = System.currentTimeMillis();
 
     /**
      * 是否能够进行fetch操作
@@ -21,7 +21,7 @@ public class CFFetcher {
      *
      * @return 是否可以进行fetch操作
      */
-    public boolean canFetch() {
+    public static boolean canFetch() {
         long currentTimestamp = System.currentTimeMillis();
         if ((currentTimestamp - lastFetchTimestamp) >= 2000) {
             lastFetchTimestamp = currentTimestamp;
@@ -31,7 +31,12 @@ public class CFFetcher {
         }
     }
 
-    public void waitForNextFetch() {
+    /**
+     * 等待直到可以进行fetch操作
+     * 如果距离上一次fetch操作不足两秒，则等待直到两秒过去
+     * 这个方法会阻塞当前线程，直到可以进行fetch操作
+     */
+    public static void waitForNextFetch() {
         long currentTimestamp = System.currentTimeMillis();
         long timeSinceLastFetch = currentTimestamp - lastFetchTimestamp;
         if (timeSinceLastFetch < 2000) {
@@ -51,7 +56,7 @@ public class CFFetcher {
      *
      * @return 一个CompletableFuture对象，表示异步操作的结果
      */
-    public CompletableFuture<Void> fetchProblems() {
+    public static CompletableFuture<Void> fetchProblems() {
         return CompletableFuture.runAsync(() -> {
             // 等待直到可以进行fetch操作
             waitForNextFetch();
@@ -69,7 +74,7 @@ public class CFFetcher {
         });
     }
 
-    public CompletableFuture<Void> fetchUserStatus(String handle) {
+    public static CompletableFuture<Void> fetchUserStatus(String handle) {
         return CompletableFuture.runAsync(() -> {
             // 等待直到可以进行fetch操作
             waitForNextFetch();
