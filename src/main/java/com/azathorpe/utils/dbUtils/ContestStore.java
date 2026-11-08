@@ -25,6 +25,5 @@ public class ContestStore {
     public static void updateDatabase() {
         // 拉取题目文件
         CFFetcher.fetchContests();
-        // 解析json
     }
 }

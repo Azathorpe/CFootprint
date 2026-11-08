@@ -8,6 +8,7 @@ import com.azathorpe.utils.dbUtils.ProblemStore;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.components.JBScrollPane;
@@ -31,6 +32,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     private JBTextField ratingMaxField;
     private JComboBox<String> typeBox;
     private JBTextField tagsField;
+    private JComboBox<String> divBox;
 
     // 分页控件
     private JLabel pageLabel;
@@ -95,6 +97,12 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         tagsField.getEmptyText().setText("dp,greedy");
         bar.add(tagsField);
 
+        bar.add(new JLabel("Div:"));
+        divBox = new JComboBox<>(new String[]{
+                "全部", "DIV1", "DIV2", "DIV3", "DIV4", "DIV1_2", "EDU", "GLOBAL", "OTHER"
+        });
+        bar.add(divBox);
+
         JButton applyBtn = new JButton("筛选");
         applyBtn.addActionListener(e -> refreshAll(buildFilter()));
         bar.add(applyBtn);
@@ -106,6 +114,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
             ratingMaxField.setText("");
             typeBox.setSelectedIndex(0);
             tagsField.setText("");
+            divBox.setSelectedIndex(0);
             refreshAll(null);
         });
         bar.add(resetBtn);
@@ -277,7 +286,13 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
                     .filter(s -> !s.isEmpty())
                     .forEach(tags::add);
         }
-        return new ProblemFilter(null, name.isEmpty() ? null : name, min, max, type, tags);
+        String division = (String) divBox.getSelectedItem();
+        return new ProblemFilter(
+                null,
+                name.isEmpty() ? null : name,
+                min, max, type, tags,
+                division
+        );
     }
 
     private static Integer parseIntOrNull(String s) {

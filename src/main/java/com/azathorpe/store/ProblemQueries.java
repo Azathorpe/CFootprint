@@ -23,6 +23,7 @@ public final class ProblemQueries {
         List<String> tags = (List<String>) e.getProperty("tags");
         Entity contest = e.getLink("contest");
         String contestName = contest == null ? "" : safeString(contest.getProperty("name"));
+        String division = contest == null ? "OTHER" : safeString(contest.getProperty("division"));
         return new ProblemDto(
                 (Integer) e.getProperty("contestId"),
                 (String) e.getProperty("index"),
@@ -32,7 +33,8 @@ public final class ProblemQueries {
                 e.getProperty("points") == null ? 0f : ((Number) e.getProperty("points")).floatValue(),
                 e.getProperty("rating") == null ? 0 : (Integer) e.getProperty("rating"),
                 tags == null ? List.of() : tags,
-                contestName
+                contestName,
+                division
         );
     }
 
@@ -108,6 +110,10 @@ public final class ProblemQueries {
             for (String t : f.tags()) {
                 if (p.tags().stream().noneMatch(x -> x.equalsIgnoreCase(t))) return false;
             }
+        }
+        if (f.division() != null && !"全部".equals(f.division())
+                && !f.division().equals(p.division())) {
+            return false;
         }
         return true;
     }
