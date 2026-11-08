@@ -3,6 +3,8 @@ package com.azathorpe;
 import com.azathorpe.settings.FontChangedNotifier;
 import com.azathorpe.store.ProblemQueries;
 import com.azathorpe.ui.*;
+import com.azathorpe.utils.dbUtils.ContestStore;
+import com.azathorpe.utils.dbUtils.ProblemStore;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -43,6 +45,9 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         FileUtils.chkDir();
+//
+//        ProblemStore.updateDatabase();
+//        ContestStore.updateDatabase();
 
         JPanel root = new JPanel(new BorderLayout());
         root.add(createFilterBar(), BorderLayout.NORTH);

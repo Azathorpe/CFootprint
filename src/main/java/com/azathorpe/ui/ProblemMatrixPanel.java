@@ -22,7 +22,7 @@ public class ProblemMatrixPanel extends JPanel {
         c.gridx = 0;
         c.weightx = 0;
         JLabel corner = headerLabel("Contest");
-        corner.setPreferredSize(new Dimension(70, 28));
+        corner.setPreferredSize(new Dimension(200, 28));
         add(corner, c);
 
         List<String> baseIndexes = data.baseIndexes();
@@ -32,15 +32,26 @@ public class ProblemMatrixPanel extends JPanel {
             add(headerLabel(baseIndexes.get(i)), c);
         }
 
+        int rowIdx = 1;  // 第 0 行是表头，数据从第 1 行开始
         // 数据行
-        int rowIdx = 1;
         for (Map.Entry<Integer, Map<String, List<ProblemDto>>> row : data.rows().entrySet()) {
             c.gridy = rowIdx++;
             c.gridx = 0;
             c.weightx = 0;
-            JLabel contestLabel = new JLabel(String.valueOf(row.getKey()));
+
+            String contestName = row.getValue().values().stream()
+                    .flatMap(List::stream)
+                    .findFirst()
+                    .map(ProblemDto::contestName)
+                    .orElse("");
+            if (contestName.isEmpty()) {
+                contestName = String.valueOf(row.getKey());
+            }
+
+            JLabel contestLabel = new JLabel("<html><b>" + row.getKey() + "</b><br/>"
+                    + escapeHtml(shorten(contestName, 30)) + "</html>");
+            contestLabel.setToolTipText("Contest " + row.getKey() + ": " + contestName);
             contestLabel.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
-            contestLabel.setFont(contestLabel.getFont().deriveFont(Font.BOLD));
             add(contestLabel, c);
 
             for (int i = 0; i < baseIndexes.size(); i++) {
@@ -73,5 +84,14 @@ public class ProblemMatrixPanel extends JPanel {
         l.setBackground(UIManager.getColor("TableHeader.background"));
         l.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         return l;
+    }
+
+    private static String shorten(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max) + "…" : s;
+    }
+
+    private static String escapeHtml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }

@@ -12,12 +12,17 @@ import java.util.List;
 
 public final class ProblemQueries {
 
-    private ProblemQueries() {}
+    private ProblemQueries() {
+    }
 
-    /** 事务内把 Entity 映射为 DTO，Entity 不能带出事务 */
+    /**
+     * 事务内把 Entity 映射为 DTO，Entity 不能带出事务
+     */
     public static ProblemDto toDto(Entity e) {
         @SuppressWarnings("unchecked")
-        List<String> tags = (List<String>) e.getProperty("tags"); // 如果 tags 尚未入库，返回空列表
+        List<String> tags = (List<String>) e.getProperty("tags");
+        Entity contest = e.getLink("contest");
+        String contestName = contest == null ? "" : safeString(contest.getProperty("name"));
         return new ProblemDto(
                 (Integer) e.getProperty("contestId"),
                 (String) e.getProperty("index"),
@@ -26,8 +31,13 @@ public final class ProblemQueries {
                 (String) e.getProperty("type"),
                 e.getProperty("points") == null ? 0f : ((Number) e.getProperty("points")).floatValue(),
                 e.getProperty("rating") == null ? 0 : (Integer) e.getProperty("rating"),
-                tags == null ? List.of() : tags
+                tags == null ? List.of() : tags,
+                contestName
         );
+    }
+
+    private static String safeString(Object o) {
+        return o == null ? "" : o.toString();
     }
 
     public static List<ProblemDto> loadAll() {

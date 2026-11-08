@@ -10,5 +10,6 @@ public record ProblemDto(
         String type,
         float points,
         int rating,
-        List<String> tags
+        List<String> tags,
+        String contestName
 ) {}
