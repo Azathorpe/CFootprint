@@ -122,6 +122,7 @@ public final class ProblemStore {
             updateDatabase();
             LAST_FETCH_TIMESTAMP = currentTimeMillis;
             FileUtils.cc.setProblemLastFetchTimeStamp(currentTimeMillis);
+            FileUtils.saveCommonConfig();
             return true;
         }
         return false;

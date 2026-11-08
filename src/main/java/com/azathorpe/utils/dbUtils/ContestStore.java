@@ -44,6 +44,7 @@ public class ContestStore {
             updateDatabase();
             LAST_FETCH_TIMESTAMP = currentTimeMillis;
             FileUtils.cc.setContestLastFetchTimeStamp(currentTimeMillis);
+            FileUtils.saveCommonConfig();
             return true;
         }
         return false;

@@ -1,5 +1,7 @@
 package com.azathorpe.entities;
 
+import com.azathorpe.utils.fileSystem.FileUtils;
+
 public class CommonConfig {
     long problemLastFetchTimeStamp = 0;
     long contestLastFetchTimeStamp = 0;
