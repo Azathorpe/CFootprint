@@ -16,6 +16,8 @@ public class FileUtils {
     public static final Path FileSystemBasePath = Paths.get(userDir).resolve(".cfp");
     public static final String ProblemStorageDir = Paths.get(FileSystemBaseDir).resolve("problems").toString();
     public static final Path ProblemStoragePath = Paths.get(FileSystemBaseDir).resolve("problems");
+    public static final String ContestStorageDir = Paths.get(FileSystemBaseDir).resolve("contests").toString();
+    public static final Path ContestStoragePath = Paths.get(FileSystemBaseDir).resolve("contests");
     public static final String UserStorageDir = Paths.get(FileSystemBaseDir).resolve("users").toString();
     public static final Path UserStoragePath = Paths.get(FileSystemBaseDir).resolve("users");
     private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
@@ -34,6 +36,7 @@ public class FileUtils {
             Files.createDirectories(userPath);
             Files.createDirectories(FileSystemBasePath);
             Files.createDirectories(ProblemStoragePath);
+            Files.createDirectories(ContestStoragePath);
             Files.createDirectories(UserStoragePath);
             log.info("Checking Over......");
         } catch (IOException e) {
@@ -83,6 +86,24 @@ public class FileUtils {
     public static String readProblemSet() {
         try {
             return Files.readString(ProblemStoragePath.resolve("problemset.json"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void saveContestSet(String content) {
+        try {
+            FileWriter fw = new FileWriter(ContestStoragePath.resolve("contestset.json").toFile());
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String readContestSet() {
+        try {
+            return Files.readString(ContestStoragePath.resolve("contestset.json"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
