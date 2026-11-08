@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -92,6 +94,14 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
 
         // 首次加载
         refreshAll(null);
+
+        String savedHandle = PropertiesComponent.getInstance().getValue(HANDLE_KEY, "");
+        if (!savedHandle.isEmpty() && FileUtils.userStatusFileExists(savedHandle)) {
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                UserStore.updateDatabase(savedHandle, false);  // 强制不 fetch，只解析本地
+                ApplicationManager.getApplication().invokeLater(() -> refreshAll(null));
+            });
+        }
 
         ApplicationManager.getApplication().getMessageBus().connect(content)
                 .subscribe(FontChangedNotifier.TOPIC, (FontChangedNotifier) () -> ApplicationManager.getApplication().invokeLater(
@@ -177,35 +187,38 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
 
     private void loadHandle(Project project) {
         String handle = handleField.getText().trim();
-        if (handle.isEmpty()) return;
+        if (handle.isEmpty()) {
+            handle = PropertiesComponent.getInstance().getValue(HANDLE_KEY, "");
+            if (handle.isEmpty()) return;
+            handleField.setText(handle);
+        }
 
         PropertiesComponent props = PropertiesComponent.getInstance();
         props.setValue(HANDLE_KEY, handle);
 
         String fetchKey = LAST_FETCH_PREFIX + handle;
         long lastFetch = props.getLong(fetchKey, 0);
-        boolean needFetch = System.currentTimeMillis() - lastFetch >= FETCH_INTERVAL_MS;
+        boolean jsonMissing = !FileUtils.userStatusFileExists(handle);
+        boolean needFetch = jsonMissing
+                || System.currentTimeMillis() - lastFetch >= FETCH_INTERVAL_MS;
 
+        String finalHandle = handle;
+        boolean finalNeedFetch = needFetch;
         loadBtn.setEnabled(false);
         new Task.Backgroundable(project, "加载 " + handle + " 的提交记录", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(true);
-                if (needFetch) {
-                    indicator.setText("正在从 Codeforces 拉取数据…");
-                    // UserStore.updateDatabase 内部会 fetch，这里不重复调
-                } else {
-                    indicator.setText("使用本地缓存…");
-                }
-                UserStore.updateDatabase(handle, needFetch);
-                if (needFetch) {
-                    props.setValue(fetchKey, String.valueOf(System.currentTimeMillis()));
-                }
+                indicator.setText(finalNeedFetch ? "正在从 Codeforces 拉取数据…" : "使用本地缓存…");
+                UserStore.updateDatabase(finalHandle, finalNeedFetch);
             }
 
             @Override
             public void onSuccess() {
-                renderCurrentPage();
+                if (finalNeedFetch) {
+                    props.setValue(fetchKey, String.valueOf(System.currentTimeMillis()));
+                }
+                refreshAll(buildFilter());
             }
 
             @Override

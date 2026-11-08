@@ -144,4 +144,8 @@ public class FileUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public static boolean userStatusFileExists(String handle) {
+        return Files.exists(Path.of(FileUtils.UserStorageDir));
+    }
 }
