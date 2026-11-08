@@ -1,8 +1,10 @@
 package com.azathorpe.store;
 
 import com.azathorpe.entities.Problem;
+import com.azathorpe.entities.Submission;
 import com.azathorpe.ui.ProblemDto;
 import com.azathorpe.ui.ProblemFilter;
+import com.azathorpe.ui.ProblemStatus;
 import com.azathorpe.utils.dbUtils.ProblemStore;
 import jetbrains.exodus.entitystore.Entity;
 import jetbrains.exodus.entitystore.EntityIterable;
@@ -24,6 +26,18 @@ public final class ProblemQueries {
         Entity contest = e.getLink("contest");
         String contestName = contest == null ? "" : safeString(contest.getProperty("name"));
         String division = contest == null ? "OTHER" : safeString(contest.getProperty("division"));
+        if (division.isEmpty()) division = "OTHER";
+
+        String verdictStr = safeString(e.getProperty("verdict"));
+        ProblemStatus status;
+        if ("OK".equals(verdictStr)) {
+            status = ProblemStatus.AC;
+        } else if (!verdictStr.isEmpty()) {
+            status = ProblemStatus.ATTEMPTED;
+        } else {
+            status = ProblemStatus.UNSOLVED;
+        }
+
         return new ProblemDto(
                 (Integer) e.getProperty("contestId"),
                 (String) e.getProperty("index"),
@@ -34,7 +48,8 @@ public final class ProblemQueries {
                 e.getProperty("rating") == null ? 0 : (Integer) e.getProperty("rating"),
                 tags == null ? List.of() : tags,
                 contestName,
-                division
+                division,
+                status
         );
     }
 

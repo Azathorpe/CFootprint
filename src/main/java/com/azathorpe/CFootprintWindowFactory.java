@@ -5,7 +5,9 @@ import com.azathorpe.store.ProblemQueries;
 import com.azathorpe.ui.*;
 import com.azathorpe.utils.dbUtils.ContestStore;
 import com.azathorpe.utils.dbUtils.ProblemStore;
+import com.azathorpe.utils.dbUtils.UserStore;
 import com.azathorpe.utils.fileSystem.FileUtils;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -22,6 +24,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.azathorpe.ui.ProblemCell.RATING_COLOR_KEY;
 
 public class CFootprintWindowFactory implements ToolWindowFactory {
 
@@ -48,7 +52,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         FileUtils.chkDir();
-//
+        UserStore.updateDatabase("AzazelNeverWA");
 //        ProblemStore.updateDatabase();
 //        ContestStore.updateDatabase();
 
@@ -90,7 +94,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         bar.add(ratingMaxField);
 
         bar.add(new JLabel("Type:"));
-        typeBox = new JComboBox<>(new String[]{"全部", "PROGRAMMING", "QUESTION"});
+        typeBox = new ComboBox<>(new String[]{"全部", "PROGRAMMING", "QUESTION"});
         bar.add(typeBox);
 
         bar.add(new JLabel("Tags:"));
@@ -99,10 +103,20 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         bar.add(tagsField);
 
         bar.add(new JLabel("Div:"));
-        divBox = new JComboBox<>(new String[]{
+        divBox = new ComboBox<>(new String[]{
                 "全部", "DIV1", "DIV2", "DIV3", "DIV4", "DIV1_2", "EDU", "GLOBAL", "OTHER"
         });
         bar.add(divBox);
+
+        JCheckBox ratingColorBox = new JCheckBox("按难度着色",
+                PropertiesComponent.getInstance().isTrueValue(RATING_COLOR_KEY));
+        ratingColorBox.addActionListener(e -> {
+            PropertiesComponent.getInstance().setValue(RATING_COLOR_KEY, ratingColorBox.isSelected());
+            // 触发矩阵重建，让新着色生效
+            ApplicationManager.getApplication().getMessageBus()
+                    .syncPublisher(FontChangedNotifier.TOPIC).fontChanged();
+        });
+        bar.add(ratingColorBox);
 
         JButton applyBtn = new JButton("筛选");
         applyBtn.addActionListener(e -> refreshAll(buildFilter()));

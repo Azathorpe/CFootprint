@@ -12,5 +12,6 @@ public record ProblemDto(
         int rating,
         List<String> tags,
         String contestName,
-        String division
+        String division,
+        ProblemStatus status
 ) {}

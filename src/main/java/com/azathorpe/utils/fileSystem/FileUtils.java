@@ -52,7 +52,7 @@ public class FileUtils {
      */
     public static void saveUserStatus(String handle, String content) {
         try {
-            FileWriter fw = new FileWriter(UserStoragePath.resolve(handle).toFile());
+            FileWriter fw = new FileWriter(UserStoragePath.resolve(handle + ".json").toFile());
             fw.write(content);
             fw.close();
         } catch (IOException e) {
@@ -62,7 +62,7 @@ public class FileUtils {
 
     public static String readUserStatus(String handle) {
         try {
-            return Files.readString(UserStoragePath.resolve(handle));
+            return Files.readString(UserStoragePath.resolve(handle + ".json"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
