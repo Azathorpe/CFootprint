@@ -1,7 +1,5 @@
 package com.azathorpe.store;
 
-import com.azathorpe.entities.Problem;
-import com.azathorpe.entities.Submission;
 import com.azathorpe.ui.ProblemDto;
 import com.azathorpe.ui.ProblemFilter;
 import com.azathorpe.ui.ProblemStatus;
@@ -11,6 +9,7 @@ import jetbrains.exodus.entitystore.EntityIterable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class ProblemQueries {
 
@@ -18,9 +17,10 @@ public final class ProblemQueries {
     }
 
     /**
-     * 事务内把 Entity 映射为 DTO，Entity 不能带出事务
+     * 事务内把 Entity 映射为 DTO，Entity 不能带出事务。
+     * verdicts: key = contestId + "-" + index，value = verdict 字符串；可为 null 或空
      */
-    public static ProblemDto toDto(Entity e) {
+    public static ProblemDto toDto(Entity e, Map<String, String> verdicts) {
         @SuppressWarnings("unchecked")
         List<String> tags = (List<String>) e.getProperty("tags");
         Entity contest = e.getLink("contest");
@@ -28,19 +28,23 @@ public final class ProblemQueries {
         String division = contest == null ? "OTHER" : safeString(contest.getProperty("division"));
         if (division.isEmpty()) division = "OTHER";
 
-        String verdictStr = safeString(e.getProperty("verdict"));
+        int contestId = (Integer) e.getProperty("contestId");
+        String index = (String) e.getProperty("index");
+        String verdictStr = verdicts == null ? null
+                : verdicts.get(contestId + "-" + index);
+
         ProblemStatus status;
         if ("OK".equals(verdictStr)) {
             status = ProblemStatus.AC;
-        } else if (!verdictStr.isEmpty()) {
+        } else if (verdictStr != null && !verdictStr.isEmpty()) {
             status = ProblemStatus.ATTEMPTED;
         } else {
             status = ProblemStatus.UNSOLVED;
         }
 
         return new ProblemDto(
-                (Integer) e.getProperty("contestId"),
-                (String) e.getProperty("index"),
+                contestId,
+                index,
                 (String) e.getProperty("problemsetName"),
                 (String) e.getProperty("name"),
                 (String) e.getProperty("type"),
@@ -53,15 +57,20 @@ public final class ProblemQueries {
         );
     }
 
+    /** 不带用户状态的映射，全部为 UNSOLVED */
+    public static ProblemDto toDto(Entity e) {
+        return toDto(e, null);
+    }
+
     private static String safeString(Object o) {
         return o == null ? "" : o.toString();
     }
 
-    public static List<ProblemDto> loadAll() {
+    public static List<ProblemDto> loadAll(Map<String, String> verdicts) {
         List<ProblemDto> result = new ArrayList<>();
         ProblemStore.get().executeInReadonlyTransaction(txn -> {
             for (Entity e : txn.getAll("Problem")) {
-                result.add(toDto(e));
+                result.add(toDto(e, verdicts));
             }
         });
         return result;
@@ -79,18 +88,18 @@ public final class ProblemQueries {
         return result;
     }
 
-    public static List<ProblemDto> loadByContest(int contestId) {
+    public static List<ProblemDto> loadByContest(int contestId, Map<String, String> verdicts) {
         List<ProblemDto> result = new ArrayList<>();
         ProblemStore.get().executeInReadonlyTransaction(txn -> {
             for (Entity e : txn.find("Problem", "contestId", contestId)) {
-                result.add(toDto(e));
+                result.add(toDto(e, verdicts));
             }
         });
         result.sort((a, b) -> a.index().compareTo(b.index()));
         return result;
     }
 
-    public static List<ProblemDto> query(ProblemFilter filter) {
+    public static List<ProblemDto> query(ProblemFilter filter, Map<String, String> verdicts) {
         List<ProblemDto> result = new ArrayList<>();
         ProblemStore.get().executeInReadonlyTransaction(txn -> {
             EntityIterable base;
@@ -100,7 +109,7 @@ public final class ProblemQueries {
                 base = txn.getAll("Problem");
             }
             for (Entity e : base) {
-                ProblemDto dto = toDto(e);
+                ProblemDto dto = toDto(e, verdicts);
                 if (matches(dto, filter)) {
                     result.add(dto);
                 }

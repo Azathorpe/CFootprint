@@ -26,9 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,6 +61,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     // 状态
     private Paginator<Integer> contestPaginator;
     private List<ProblemDto> currentFilteredProblems = List.of();
+    private Map<String, String> currentVerdicts = Map.of();
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -329,9 +328,14 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
      * 重新筛选 + 重新分页 + 渲染第一页
      */
     private void refreshAll(ProblemFilter filter) {
+        String handle = PropertiesComponent.getInstance().getValue(HANDLE_KEY, "");
+        currentVerdicts = handle.isEmpty()
+                ? Map.of()
+                : UserStore.loadAllVerdicts(handle);
+
         List<ProblemDto> data = (filter == null || filter.isEmpty())
-                ? ProblemQueries.loadAll()
-                : ProblemQueries.query(filter);
+                ? ProblemQueries.loadAll(currentVerdicts)
+                : ProblemQueries.query(filter, currentVerdicts);
         currentFilteredProblems = data;
 
         // 按 contestId 排序后提取唯一 contest 列表
