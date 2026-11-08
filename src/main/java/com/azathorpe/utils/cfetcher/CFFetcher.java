@@ -69,5 +69,23 @@ public class CFFetcher {
         });
     }
 
+    public CompletableFuture<Void> fetchUserStatus(String handle) {
+        return CompletableFuture.runAsync(() -> {
+            // 等待直到可以进行fetch操作
+            waitForNextFetch();
+            try {
+                Message message = CFSender.queryStatus(handle);
+                if (message.getStatus().equals("OK")) {
+                    // 存储到本地文件
+                    FileUtils.saveUserStatus(handle, message.getResult());
+                } else {
+                    log.error("Failed to fetch user status for {}: {}", handle, message.getComment());
+                }
+            } catch (Exception e) {
+                log.error("Error fetching user status for {}: ", handle, e);
+            }
+        });
+    }
+
 
 }
