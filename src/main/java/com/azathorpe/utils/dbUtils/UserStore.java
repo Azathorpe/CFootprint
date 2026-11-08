@@ -7,20 +7,32 @@ import com.azathorpe.utils.cfetcher.CFFetcher;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import jetbrains.exodus.entitystore.Entity;
 import jetbrains.exodus.entitystore.StoreTransaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class UserStore {
+
+    private static final Logger log = LoggerFactory.getLogger(UserStore.class);
 
     /**
      * 拉取指定 handle 的提交记录，聚合出每道题的最佳状态，写入 Problem 实体的 verdict 属性。
      * 不创建任何新的 Problem / Contest 实体——题库由 ProblemStore.updateDatabase 负责。
      */
     public static void updateDatabase(String handle) {
-        // 1. 拉取并解析
-        CFFetcher.fetchUserStatus(handle);
+        // 同步拉取并解析
+        try {
+            CFFetcher.fetchUserStatus(handle).get();
+        } catch (InterruptedException e) {
+            log.info("Interrupted Exception: {}", String.valueOf(e));
+        } catch (ExecutionException e) {
+            log.info("Execution Exception: {}", String.valueOf(e));
+        }
+
         List<Submission> submissions = JSON.parseArray(
                 FileUtils.readUserStatus(handle), Submission.class);
         if (submissions == null || submissions.isEmpty()) {
@@ -58,7 +70,9 @@ public class UserStore {
         });
     }
 
-    /** 按 (contestId, index) 查找已有 Problem 实体；找不到返回 null */
+    /**
+     * 按 (contestId, index) 查找已有 Problem 实体；找不到返回 null
+     */
     private static Entity findProblem(StoreTransaction txn, int contestId, String index) {
         for (Entity e : txn.find("Problem", "contestId", contestId)) {
             if (index.equals(e.getProperty("index"))) {
