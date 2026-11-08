@@ -4,12 +4,15 @@ import java.util.*;
 
 public final class ProblemMatrixBuilder {
 
-    private ProblemMatrixBuilder() {}
+    private ProblemMatrixBuilder() {
+    }
 
-    /** 传入当前页的题目，按 contestId 分组，列 = baseIndex */
+    /**
+     * 传入当前页的题目，按 contestId 分组，列 = baseIndex
+     */
     public static MatrixData build(List<ProblemDto> problems) {
         TreeSet<String> baseIndexes = new TreeSet<>();
-        Map<Integer, Map<String, List<ProblemDto>>> rows = new TreeMap<>();
+        Map<Integer, Map<String, List<ProblemDto>>> rows = new TreeMap<>(Comparator.reverseOrder());
 
         for (ProblemDto p : problems) {
             String base = baseIndex(p.index());
@@ -26,7 +29,9 @@ public final class ProblemMatrixBuilder {
         return new MatrixData(new ArrayList<>(baseIndexes), rows);
     }
 
-    /** C1 -> C，C12 -> C，A -> A */
+    /**
+     * C1 -> C，C12 -> C，A -> A
+     */
     public static String baseIndex(String index) {
         if (index == null || index.isEmpty()) return "";
         int i = index.length();
@@ -37,5 +42,6 @@ public final class ProblemMatrixBuilder {
     }
 
     public record MatrixData(List<String> baseIndexes,
-                             Map<Integer, Map<String, List<ProblemDto>>> rows) {}
+                             Map<Integer, Map<String, List<ProblemDto>>> rows) {
+    }
 }

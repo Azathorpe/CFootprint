@@ -19,6 +19,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -207,7 +208,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         List<Integer> contestIds = currentFilteredProblems.stream()
                 .map(ProblemDto::contestId)
                 .distinct()
-                .sorted()
+                .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
 
         contestPaginator = new Paginator<>(contestIds, CONTESTS_PER_PAGE);
@@ -235,7 +236,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         List<Integer> contestIds = data.stream()
                 .map(ProblemDto::contestId)
                 .distinct()
-                .sorted()
+                .sorted(Comparator.reverseOrder())   // 改成降序
                 .collect(Collectors.toList());
 
         contestPaginator = new Paginator<>(contestIds, CONTESTS_PER_PAGE);
