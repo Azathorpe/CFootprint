@@ -7,9 +7,6 @@ public class ProblemStatistics {
     String index;
     int solvedCount;
 
-    //组合键
-    String combinationKey;
-
     public ProblemStatistics() {
     }
 
@@ -17,19 +14,6 @@ public class ProblemStatistics {
         this.contestId = contestId;
         this.index = index;
         this.solvedCount = solvedCount;
-        this.combinationKey = contestId + "-" + index;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        ProblemStatistics that = (ProblemStatistics) o;
-        return Objects.equals(combinationKey, that.combinationKey);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(combinationKey);
     }
 
     public int getContestId() {
@@ -55,4 +39,5 @@ public class ProblemStatistics {
     public void setSolvedCount(int solvedCount) {
         this.solvedCount = solvedCount;
     }
+
 }
