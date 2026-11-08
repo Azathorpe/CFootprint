@@ -16,6 +16,8 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,6 +31,7 @@ import static com.azathorpe.ui.ProblemCell.RATING_COLOR_KEY;
 
 public class CFootprintWindowFactory implements ToolWindowFactory {
 
+    private static final Logger log = LoggerFactory.getLogger(CFootprintWindowFactory.class);
     private int CONTESTS_PER_PAGE = 10;
 
     // 筛选控件
@@ -52,8 +55,17 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         FileUtils.chkDir();
-        UserStore.updateDatabase("name_33kill");
-//        ProblemStore.updateDatabase();
+
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            if (ProblemStore.autoUpdate()) {
+                log.info("Problem Updated...");
+            }
+
+            if (ContestStore.autoUpdate())
+                log.info("Contest Updated...");
+        });
+
+//        UserStore.updateDatabase("jiangly");
 //        ContestStore.updateDatabase();
 
         JPanel root = new JPanel(new BorderLayout());

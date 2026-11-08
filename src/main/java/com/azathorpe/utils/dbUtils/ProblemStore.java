@@ -8,14 +8,22 @@ import com.azathorpe.entities.Problems;
 import com.azathorpe.utils.cfetcher.CFFetcher;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import jetbrains.exodus.entitystore.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class ProblemStore {
+    private static final Logger log = LoggerFactory.getLogger(ProblemStore.class);
+    private static long LAST_FETCH_TIMESTAMP = 0;
+    private static final long FETCH_INTERVAL_MS = TimeUnit.HOURS.toMillis(6);
+
     private static PersistentEntityStore instance;
 
     public static synchronized PersistentEntityStore get() {
@@ -37,7 +45,15 @@ public final class ProblemStore {
      */
     public static void updateDatabase() {
         // 拉取题目文件
-        CFFetcher.fetchProblems();
+        try {
+            // 因为后面需要用到这俩，所以必须保持同步，不能异步执行
+            CFFetcher.fetchProblems().get();
+            CFFetcher.fetchContests().get();
+        } catch (InterruptedException e) {
+            log.info("Interrupted Exception: {}", String.valueOf(e));
+        } catch (ExecutionException e) {
+            log.info("Execution Exception: {}", String.valueOf(e));
+        }
         // 解析json
         // 是两个数组"problems"&"problemStatistics"
         Problems problems = JSON.parseObject(FileUtils.readProblemSet(), Problems.class);
@@ -94,40 +110,20 @@ public final class ProblemStore {
         });
     }
 
-    public static void printAllData() {
-        ProblemStore.get().executeInReadonlyTransaction(txn -> {
-            System.out.println("========== Contest ==========");
-            for (Entity contest : txn.getAll("Contest")) {
-                System.out.println("contestId=" + contest.getProperty("contestId"));
-            }
-
-            System.out.println("========== Problem ==========");
-            int problemCount = 0;
-            for (Entity p : txn.getAll("Problem")) {
-                problemCount++;
-                System.out.println(
-                        "contestId=" + p.getProperty("contestId")
-                                + ", index=" + p.getProperty("index")
-                                + ", name=" + p.getProperty("name")
-                                + ", type=" + p.getProperty("type")
-                                + ", points=" + p.getProperty("points")
-                                + ", rating=" + p.getProperty("rating")
-                );
-            }
-            System.out.println("Problem 总数: " + problemCount);
-
-            System.out.println("========== ProblemStatistics ==========");
-            int statCount = 0;
-            for (Entity s : txn.getAll("ProblemStatistics")) {
-                statCount++;
-                System.out.println(
-                        "contestId=" + s.getProperty("contestId")
-                                + ", index=" + s.getProperty("index")
-                                + ", solvedCount=" + s.getProperty("solvedCount")
-                );
-            }
-            System.out.println("ProblemStatistics 总数: " + statCount);
-        });
+    /**
+     * 自动抓取数据(需要两次需要间隔6个小时)
+     * @return 是否抓取数据
+     */
+    public static boolean autoUpdate(){
+        long currentTimeMillis = System.currentTimeMillis();
+        long distance = currentTimeMillis - LAST_FETCH_TIMESTAMP;
+        if(distance >= FETCH_INTERVAL_MS){
+            //间隔在6个小时，可以抓数据
+            updateDatabase();
+            LAST_FETCH_TIMESTAMP = currentTimeMillis;
+            return true;
+        }
+        return false;
     }
 
     private static String classifyDivision(String name) {
