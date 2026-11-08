@@ -8,7 +8,7 @@
     <name>CFootprint</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://space.bilibili.com/204828664">滦河暮鱼@BiliBili</vendor>
+    <vendor url="https://github.com/Azathorpe">Azathorpe@Github</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
