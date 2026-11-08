@@ -8,7 +8,7 @@ import jetbrains.exodus.entitystore.PersistentEntityStores;
 import java.util.concurrent.TimeUnit;
 
 public class ContestStore {
-    private static long LAST_FETCH_TIMESTAMP = 0;
+    public static long LAST_FETCH_TIMESTAMP = 0;
     private static final long FETCH_INTERVAL_MS = TimeUnit.HOURS.toMillis(6);
 
     private static PersistentEntityStore instance;

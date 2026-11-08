@@ -1,8 +1,8 @@
 package com.azathorpe.entities;
 
 public class CommonConfig {
-    long problemLastFetchTimeStamp;
-    long contestLastFetchTimeStamp;
+    long problemLastFetchTimeStamp = 0;
+    long contestLastFetchTimeStamp = 0;
 
     public CommonConfig() {
     }

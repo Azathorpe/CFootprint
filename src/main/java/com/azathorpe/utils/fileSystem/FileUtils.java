@@ -1,5 +1,9 @@
 package com.azathorpe.utils.fileSystem;
 
+import com.alibaba.fastjson2.JSON;
+import com.azathorpe.entities.CommonConfig;
+import com.azathorpe.utils.dbUtils.ContestStore;
+import com.azathorpe.utils.dbUtils.ProblemStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileUtils {
+    public static CommonConfig cc = new CommonConfig();
+
     public static final String userDir = System.getProperty("user.home");
     public static final Path userPath = Path.of(System.getProperty("user.home"));
     public static final String FileSystemBaseDir = Paths.get(userDir).resolve(".cfp").toString();
@@ -42,6 +48,36 @@ public class FileUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void saveCommonConfig() {
+        try {
+            FileWriter fw = new FileWriter(FileSystemBasePath.resolve("lasttimestamp.json").toFile());
+            String content = JSON.toJSONString(cc);
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void parseCommonConfig() {
+        //先校验文件是否存在
+        if (!Files.exists(FileSystemBasePath.resolve("lasttimestamp.json"))) {
+            // 不存在的话，那就call一下save
+            saveCommonConfig();
+        }
+
+        try {
+            // 读取文件
+            String content = Files.readString(FileSystemBasePath.resolve("lasttimestamp.json"));
+            CommonConfig commonConfig = JSON.parseObject(content, CommonConfig.class);
+            ProblemStore.LAST_FETCH_TIMESTAMP = commonConfig.getProblemLastFetchTimeStamp();
+            ContestStore.LAST_FETCH_TIMESTAMP = commonConfig.getContestLastFetchTimeStamp();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 
