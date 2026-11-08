@@ -91,7 +91,7 @@ public class FileUtils {
         }
     }
 
-    public static void saveContestSet(String content) {
+    public static void saveContest(String content) {
         try {
             FileWriter fw = new FileWriter(ContestStoragePath.resolve("contestset.json").toFile());
             fw.write(content);
@@ -101,7 +101,7 @@ public class FileUtils {
         }
     }
 
-    public static String readContestSet() {
+    public static String readContest() {
         try {
             return Files.readString(ContestStoragePath.resolve("contestset.json"));
         } catch (IOException e) {
