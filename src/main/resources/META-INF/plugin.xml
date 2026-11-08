@@ -37,6 +37,8 @@
         <applicationConfigurable parentId="tools"
                                  instance="com.azathorpe.CFootprintConfigurable"
                                  id="com.azathorpe.settings" displayName="CFootprint"/>
+
+        <applicationService serviceImplementation="com.azathorpe.services.ShutdownService"/>
     </extensions>
 
 </idea-plugin>

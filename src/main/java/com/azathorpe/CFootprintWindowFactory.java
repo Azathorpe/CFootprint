@@ -55,6 +55,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         FileUtils.chkDir();
+        FileUtils.parseCommonConfig();
 
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             if (ProblemStore.autoUpdate()) {
