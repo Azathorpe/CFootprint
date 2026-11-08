@@ -1,4 +1,4 @@
-package com.azathorpe.utils.cfetcher;
+package com.azathorpe.utils.dbUtils;
 
 import com.alibaba.fastjson2.JSON;
 import com.azathorpe.entities.Problem;
