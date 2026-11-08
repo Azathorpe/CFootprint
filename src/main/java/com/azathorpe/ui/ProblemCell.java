@@ -2,6 +2,8 @@ package com.azathorpe.ui;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.ui.JBColor;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -69,8 +71,8 @@ public class ProblemCell extends JPanel {
     /** 背景色由 AC 状态决定 */
     private static Color backgroundColor(ProblemStatus status) {
         return switch (status) {
-            case AC -> new Color(0x22C55E);          // 绿色
-            case ATTEMPTED -> new Color(0xEAB308);   // 黄色
+            case AC -> new JBColor(new Color(0x14532D), new Color(0x14532D));          // 绿色
+            case ATTEMPTED -> new JBColor(new Color(0xEAB308), new Color(0xEAB308));   // 黄色
             case UNSOLVED -> UIManager.getColor("Table.background");
         };
     }

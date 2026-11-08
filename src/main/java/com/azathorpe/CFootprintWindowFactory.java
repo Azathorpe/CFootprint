@@ -52,7 +52,7 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         FileUtils.chkDir();
-        UserStore.updateDatabase("AzazelNeverWA");
+        UserStore.updateDatabase("name_33kill");
 //        ProblemStore.updateDatabase();
 //        ContestStore.updateDatabase();
 
