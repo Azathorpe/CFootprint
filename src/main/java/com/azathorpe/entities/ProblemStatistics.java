@@ -1,7 +1,5 @@
 package com.azathorpe.entities;
 
-import java.util.Objects;
-
 public class ProblemStatistics {
     int contestId;
     String index;

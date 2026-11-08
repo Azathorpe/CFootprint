@@ -31,6 +31,12 @@
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
         <toolWindow id="CFootprint" factoryClass="com.azathorpe.CFootprintWindowFactory"
                     icon="/META-INF/pluginIcon.svg"/>
+
+        <applicationService serviceImplementation="com.azathorpe.CFootprintSettings"/>
+
+        <applicationConfigurable parentId="tools"
+                                 instance="com.azathorpe.CFootprintConfigurable"
+                                 id="com.azathorpe.settings" displayName="CFootprint"/>
     </extensions>
 
 </idea-plugin>
