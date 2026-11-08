@@ -16,9 +16,23 @@ The sample plugin adds a `My Tool Window` tool window with a simple functionalit
 
 ```mermaid
 flowchart TD
-    A[Fetcher] -->|save data| B[StorageSystem]
-    C[View] -->|get data| B
-    A -->|get info| D[Codeforces]
+    A[Codeforces API] -->|fetch| B[JSON 文件<br/>problems.json]
+    B --> C{检查 Xodus Meta<br/>schemaVersion / 最大 contestId / 导入时间}
+    C -->|首次启动 或 版本不匹配| D[解析 JSON]
+    D --> E[在单个写事务中<br/>批量创建/更新 Problem Entity]
+    E --> F[写入 Meta 实体<br/>记录版本与导入时间]
+    C -->|已导入且版本一致| G[直接打开 Xodus<br/>不解析 JSON]
+    F --> G
+    G --> H[插件查询层]
+    H -->|精确匹配 contestId+index| I[txn.find]
+    H -->|范围筛选 rating| J[txn.find range]
+    H -->|前缀搜索 题名| K[txn.findStartingWith]
+    H -->|标签筛选| L[内存过滤 或 关联实体]
+    I --> M[映射为 DTO 返回]
+    J --> M
+    K --> M
+    L --> M
+    M --> N[UI 展示 / 业务逻辑]
 ```
 
 A generated project contains the following content structure:
