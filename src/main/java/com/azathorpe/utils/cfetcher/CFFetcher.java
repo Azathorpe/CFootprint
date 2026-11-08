@@ -92,5 +92,23 @@ public class CFFetcher {
         });
     }
 
+    public static CompletableFuture<Void> fetchContests(){
+        return CompletableFuture.runAsync(() -> {
+            // 等待直到可以进行fetch操作
+            waitForNextFetch();
+            try {
+                Message message = CFSender.sendRequest("contest.list");
+                if (message.getStatus().equals("OK")) {
+                    // 存储到本地文件
+                    FileUtils.saveContest(message.getResult());
+                } else {
+                    log.error("Failed to fetch contests: {}", message.getComment());
+                }
+            } catch (Exception e) {
+                log.error("Error fetching contests: ", e);
+            }
+        });
+    }
+
 
 }
