@@ -75,6 +75,7 @@ public class CFFetcher {
     }
 
     public static CompletableFuture<Void> fetchUserStatus(String handle) {
+        System.out.println("Fetching User Status");
         return CompletableFuture.runAsync(() -> {
             // 等待直到可以进行fetch操作
             waitForNextFetch();

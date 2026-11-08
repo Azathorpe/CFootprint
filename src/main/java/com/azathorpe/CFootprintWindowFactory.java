@@ -8,13 +8,18 @@ import com.azathorpe.utils.dbUtils.ProblemStore;
 import com.azathorpe.utils.dbUtils.UserStore;
 import com.azathorpe.utils.fileSystem.FileUtils;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.util.ui.WrapLayout;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +35,13 @@ import java.util.stream.Collectors;
 import static com.azathorpe.ui.ProblemCell.RATING_COLOR_KEY;
 
 public class CFootprintWindowFactory implements ToolWindowFactory {
+
+    private static final String HANDLE_KEY = "com.azathorpe.plugin.handle";
+    private static final String LAST_FETCH_PREFIX = "com.azathorpe.plugin.lastFetch.";
+    private static final long FETCH_INTERVAL_MS = 6 * 60 * 60 * 1000L; // 6 小时
+
+    private JBTextField handleField;
+    private JButton loadBtn;
 
     private static final Logger log = LoggerFactory.getLogger(CFootprintWindowFactory.class);
     private int CONTESTS_PER_PAGE = 10;
@@ -69,10 +81,9 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
             }
         });
 
-//        UserStore.updateDatabase("jiangly");
 
         JPanel root = new JPanel(new BorderLayout());
-        root.add(createFilterBar(), BorderLayout.NORTH);
+        root.add(createFilterBar(project), BorderLayout.NORTH);
         root.add(createMatrixArea(), BorderLayout.CENTER);
         root.add(createPaginationBar(), BorderLayout.SOUTH);
 
@@ -91,8 +102,21 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
     /**
      * 顶部筛选条
      */
-    private JPanel createFilterBar() {
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+    private JPanel createFilterBar(Project project) {
+        JPanel bar = new JPanel(new WrapLayout(FlowLayout.LEFT, 8, 6));
+
+        // ===== Handle 区域 =====
+        bar.add(new JLabel("Handle:"));
+        handleField = new JBTextField(14);
+        handleField.getEmptyText().setText("Codeforces handle");
+        handleField.setText(PropertiesComponent.getInstance().getValue(HANDLE_KEY, ""));
+        bar.add(handleField);
+
+        loadBtn = new JButton("加载");
+        loadBtn.addActionListener(e -> loadHandle(project));
+        bar.add(loadBtn);
+
+        bar.add(new JSeparator(JSeparator.VERTICAL));
 
         bar.add(new JLabel("Name:"));
         nameField = new JBTextField(12);
@@ -150,6 +174,55 @@ public class CFootprintWindowFactory implements ToolWindowFactory {
         bar.add(resetBtn);
 
         return bar;
+    }
+
+    private void loadHandle(Project project) {
+        String handle = handleField.getText().trim();
+        if (handle.isEmpty()) return;
+
+        PropertiesComponent props = PropertiesComponent.getInstance();
+        props.setValue(HANDLE_KEY, handle);
+
+        String fetchKey = LAST_FETCH_PREFIX + handle;
+        long lastFetch = props.getLong(fetchKey, 0);
+        boolean needFetch = System.currentTimeMillis() - lastFetch >= FETCH_INTERVAL_MS;
+
+        loadBtn.setEnabled(false);
+        new Task.Backgroundable(project, "加载 " + handle + " 的提交记录", true) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setIndeterminate(true);
+                if (needFetch) {
+                    indicator.setText("正在从 Codeforces 拉取数据…");
+                    // UserStore.updateDatabase 内部会 fetch，这里不重复调
+                } else {
+                    indicator.setText("使用本地缓存…");
+                }
+                UserStore.updateDatabase(handle, needFetch);
+                if (needFetch) {
+                    props.setValue(fetchKey, String.valueOf(System.currentTimeMillis()));
+                }
+            }
+
+            @Override
+            public void onSuccess() {
+                renderCurrentPage();
+            }
+
+            @Override
+            public void onThrowable(@NotNull Throwable error) {
+                NotificationGroupManager.getInstance()
+                        .getNotificationGroup("CFootprint")
+                        .createNotification("加载失败: " + error.getMessage(),
+                                NotificationType.ERROR)
+                        .notify(project);
+            }
+
+            @Override
+            public void onFinished() {
+                loadBtn.setEnabled(true);
+            }
+        }.queue();
     }
 
     /**

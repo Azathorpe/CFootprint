@@ -39,6 +39,8 @@
                                  id="com.azathorpe.settings" displayName="CFootprint"/>
 
         <applicationService serviceImplementation="com.azathorpe.services.ShutdownService"/>
+
+        <notificationGroup id="CFootprint" displayType="BALLOON"/>
     </extensions>
 
 </idea-plugin>
